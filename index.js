@@ -17,7 +17,6 @@ const KEYWORDS = {
   viral: 20,
   viralvideo: 25,
   unbelievable: 20,
-  unbelievable: 20,
   incredible: 15,
   amazing: 15,
   shocking: 20,
@@ -78,10 +77,8 @@ function scoreStory(title, description) {
   if (title.length > 35) score += 5;
   if (title.length > 70) score += 5;
 
-  score = Math.min(score, 100);
-
   return {
-    score,
+    score: Math.min(score, 100),
     reasons: reasons.slice(0, 8)
   };
 }
@@ -127,7 +124,7 @@ async function fetchSource(source) {
   try {
     const response = await fetch(source.url, {
       headers: {
-        "User-Agent": "ViralStoryScout/1.0"
+        "User-Agent": "Mozilla/5.0 ViralStoryScout/2.0"
       }
     });
 
@@ -138,7 +135,8 @@ async function fetchSource(source) {
     const xml = await response.text();
 
     return extractItems(xml, source.name);
-  } catch {
+
+  } catch (error) {
     return [];
   }
 }
@@ -146,8 +144,11 @@ async function fetchSource(source) {
 async function getFeed() {
   const results = [];
 
-  for (const source of SOURCES) {
-    const items = await fetchSource(source);
+  const fetched = await Promise.all(
+    SOURCES.map(source => fetchSource(source))
+  );
+
+  for (const items of fetched) {
     results.push(...items);
   }
 
@@ -163,24 +164,37 @@ async function getFeed() {
     unique.push(item);
   }
 
-  unique.sort((a, b) => b.viralScore - a.viralScore);
+  unique.sort((a, b) => {
+    if (b.viralScore !== a.viralScore) {
+      return b.viralScore - a.viralScore;
+    }
+
+    return new Date(b.published || 0) -
+           new Date(a.published || 0);
+  });
 
   return unique.slice(0, 50);
 }
 
 function json(data, status = 200) {
-  return new Response(JSON.stringify(data, null, 2), {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=UTF-8",
-      "Access-Control-Allow-Origin": "*",
-      "Cache-Control": "no-store"
+  return new Response(
+    JSON.stringify(data, null, 2),
+    {
+      status,
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+        "Cache-Control": "no-store"
+      }
     }
-  });
+  );
 }
 
 export default {
   async fetch(request) {
+
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
@@ -188,47 +202,56 @@ export default {
         status: 204,
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, OPTIONS"
+          "Access-Control-Allow-Methods": "GET, OPTIONS",
+          "Access-Control-Allow-Headers": "*"
         }
       });
     }
 
-    if (url.pathname === "/" || url.pathname === "/health") {
+    if (
+      url.pathname === "/" ||
+      url.pathname === "/health"
+    ) {
       return json({
         ok: true,
         engine: "VIRAL STORY SCOUT",
-        version: "1.0",
+        version: "2.0",
         status: "online"
       });
     }
 
-    if (url.pathname === "/feed") {
-      const results = await getFeed();
+    if (
+      url.pathname === "/feed" ||
+      url.pathname === "/scan"
+    ) {
 
-      return json({
-        ok: true,
-        count: results.length,
-        results
-      });
+      try {
+
+        const results = await getFeed();
+
+        return json({
+          ok: true,
+          count: results.length,
+          scanned: SOURCES.length,
+          results
+        });
+
+      } catch (error) {
+
+        return json({
+          ok: false,
+          count: 0,
+          results: [],
+          error: error?.message || String(error)
+        }, 500);
+
+      }
     }
 
-    if (url.pathname === "/scan") {
-      const results = await getFeed();
-
-      return json({
-        ok: true,
-        scanned: SOURCES.length,
-        count: results.length,
-        results
-      });
-    }
-
-    return json(
-      {
-        ok: false,
-        error: "Endpoint not found"
-      },
-      404
-    );
+    return json({
+      ok: false,
+      error: "Endpoint not found",
+      path: url.pathname
+    }, 404);
   }
 };
