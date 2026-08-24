@@ -1,8 +1,8 @@
 // =====================================================
-// VIRAL STORY HUNTER — CLOUDFLARE WORKER
+// STORY HUNTER — CLOUDFLARE WORKER
 // =====================================================
-// Google News + Reddit RSS
-// Viral hikaye / Shorts ham maddesi bulucu
+// Google News + Reddit New RSS
+// Hikâyeleştirilebilir ham video / bilgi / olay bulucu
 //
 // ENDPOINTS:
 // /
@@ -18,9 +18,9 @@
 
 const SOURCES = [
 
-  // ---------------------------------------------------
-  // GOOGLE NEWS — GENEL VİRAL
-  // ---------------------------------------------------
+  // ===================================================
+  // GOOGLE NEWS
+  // ===================================================
 
   {
     name: "Google News Viral",
@@ -43,7 +43,7 @@ const SOURCES = [
   {
     name: "Google News Animals",
     url:
-      "https://news.google.com/rss/search?q=viral+animal+OR+funny+dog+OR+funny+cat+OR+animal+rescued&hl=en-US&gl=US&ceid=US:en"
+      "https://news.google.com/rss/search?q=animal+OR+dog+OR+cat+OR+wildlife+OR+rescued&hl=en-US&gl=US&ceid=US:en"
   },
 
   {
@@ -65,207 +65,301 @@ const SOURCES = [
   },
 
   {
-    name: "Google News Funny",
+    name: "Google News Science",
     url:
-      "https://news.google.com/rss/search?q=funny+OR+hilarious+OR+prank+OR+awkward+viral&hl=en-US&gl=US&ceid=US:en"
+      "https://news.google.com/rss/search?q=strange+science+OR+weird+science+OR+scientists+discovered+OR+scientists+found&hl=en-US&gl=US&ceid=US:en"
+  },
+
+  {
+    name: "Google News Human Stories",
+    url:
+      "https://news.google.com/rss/search?q=man+OR+woman+OR+boy+OR+girl+OR+person+unexpected+story&hl=en-US&gl=US&ceid=US:en"
   },
 
 
-  // ---------------------------------------------------
-  // REDDIT — HİKAYE HAM MADDESİ
-  // ---------------------------------------------------
+  // ===================================================
+  // REDDIT — YENİ HAM MADDE
+  // ===================================================
+
+  {
+    name: "Reddit Interesting",
+    url:
+      "https://www.reddit.com/r/interesting/new/.rss"
+  },
+
+  {
+    name: "Reddit DamnThatsInteresting",
+    url:
+      "https://www.reddit.com/r/Damnthatsinteresting/new/.rss"
+  },
 
   {
     name: "Reddit InterestingAsFuck",
     url:
-      "https://www.reddit.com/r/interestingasfuck/.rss"
-  },
-
-  {
-    name: "Reddit NextFuckinglevel",
-    url:
-      "https://www.reddit.com/r/nextfuckinglevel/.rss"
+      "https://www.reddit.com/r/interestingasfuck/new/.rss"
   },
 
   {
     name: "Reddit Unexpected",
     url:
-      "https://www.reddit.com/r/Unexpected/.rss"
+      "https://www.reddit.com/r/Unexpected/new/.rss"
+  },
+
+  {
+    name: "Reddit NextFuckinglevel",
+    url:
+      "https://www.reddit.com/r/nextfuckinglevel/new/.rss"
+  },
+
+  {
+    name: "Reddit UnusualVideos",
+    url:
+      "https://www.reddit.com/r/UnusualVideos/new/.rss"
   },
 
   {
     name: "Reddit MildlyInteresting",
     url:
-      "https://www.reddit.com/r/mildlyinteresting/.rss"
+      "https://www.reddit.com/r/mildlyinteresting/new/.rss"
+  },
+
+  {
+    name: "Reddit NatureIsFuckingLit",
+    url:
+      "https://www.reddit.com/r/NatureIsFuckingLit/new/.rss"
   },
 
   {
     name: "Reddit AnimalsBeingDerps",
     url:
-      "https://www.reddit.com/r/AnimalsBeingDerps/.rss"
+      "https://www.reddit.com/r/AnimalsBeingDerps/new/.rss"
   },
 
   {
     name: "Reddit HumansBeingBros",
     url:
-      "https://www.reddit.com/r/HumansBeingBros/.rss"
+      "https://www.reddit.com/r/HumansBeingBros/new/.rss"
   },
 
   {
-    name: "Reddit MadeMeSmile",
+    name: "Reddit OddlySatisfying",
     url:
-      "https://www.reddit.com/r/MadeMeSmile/.rss"
+      "https://www.reddit.com/r/oddlysatisfying/new/.rss"
+  },
+
+  {
+    name: "Reddit Weird",
+    url:
+      "https://www.reddit.com/r/Weird/new/.rss"
+  },
+
+  {
+    name: "Reddit DeepIntoYouTube",
+    url:
+      "https://www.reddit.com/r/DeepIntoYouTube/new/.rss"
+  },
+
+  {
+    name: "Reddit ThatLookedInteresting",
+    url:
+      "https://www.reddit.com/r/ThatLookedInteresting/new/.rss"
   },
 
   {
     name: "Reddit WhatCouldGoWrong",
     url:
-      "https://www.reddit.com/r/Whatcouldgowrong/.rss"
+      "https://www.reddit.com/r/Whatcouldgowrong/new/.rss"
   }
 
 ];
 
 
 // =====================================================
-// VIRAL KEYWORDS
+// STORY KEYWORDS
 // =====================================================
 
 const KEYWORDS = {
 
-  // -----------------------------------------------
-  // ÇOK GÜÇLÜ VİRAL SİNYALLER
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // VİRAL / TREND
+  // ---------------------------------------------------
 
-  "viral": 20,
-  "went viral": 30,
-  "goes viral": 30,
-  "viral video": 30,
-  "viralvideo": 30,
-  "trending": 15,
-  "internet": 5,
+  "viral": 12,
+  "went viral": 20,
+  "goes viral": 20,
+  "viral video": 20,
+  "trending": 10,
+  "internet": 3,
 
-  // -----------------------------------------------
-  // MERAK / ŞAŞIRTICILIK
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // ŞAŞIRTICI / MERAK
+  // ---------------------------------------------------
 
-  "unexpected": 25,
-  "unbelievable": 25,
-  "incredible": 20,
-  "amazing": 18,
-  "shocking": 25,
-  "shocked": 20,
-  "astonishing": 22,
+  "unexpected": 22,
+  "unbelievable": 22,
+  "incredible": 18,
+  "amazing": 16,
+  "shocking": 22,
+  "shocked": 18,
+  "astonishing": 20,
   "bizarre": 22,
   "strange": 18,
   "weird": 18,
-  "crazy": 18,
-  "insane": 18,
+  "crazy": 16,
+  "insane": 16,
   "unusual": 18,
   "surprising": 18,
-  "surprise": 15,
-  "never seen": 25,
-  "no one expected": 30,
+  "surprise": 14,
+  "never seen": 22,
+  "no one expected": 25,
+  "rare": 18,
+  "unknown": 15,
+  "little known": 20,
 
-  // -----------------------------------------------
-  // VİDEO / KAMERA
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // VİDEO
+  // ---------------------------------------------------
 
-  "caught on camera": 30,
-  "caught on video": 30,
-  "camera captures": 25,
-  "captured on camera": 25,
+  "caught on camera": 28,
+  "caught on video": 28,
+  "camera captures": 24,
+  "captured on camera": 24,
   "footage": 10,
-  "video": 8,
-  "recorded": 8,
+  "video": 7,
+  "recorded": 7,
+  "filmed": 7,
+  "clip": 6,
+  "watch": 5,
 
-  // -----------------------------------------------
-  // HAYVAN
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // HAYVAN / DOĞA
+  // ---------------------------------------------------
 
-  "dog": 12,
-  "cat": 12,
-  "animal": 12,
-  "puppy": 15,
-  "kitten": 15,
-  "horse": 12,
+  "dog": 10,
+  "cat": 10,
+  "puppy": 13,
+  "kitten": 13,
+  "horse": 10,
   "bird": 10,
   "bear": 10,
-  "wildlife": 10,
+  "animal": 10,
+  "wildlife": 12,
+  "nature": 8,
+  "ocean": 8,
+  "forest": 7,
+  "tree": 7,
 
-  // -----------------------------------------------
+  // ---------------------------------------------------
   // KURTARMA / HAYAT
-  // -----------------------------------------------
+  // ---------------------------------------------------
 
-  "rescued": 20,
-  "rescue": 20,
-  "saved": 20,
-  "survived": 25,
-  "survival": 25,
-  "hero": 18,
-  "heroic": 18,
-  "saved a life": 30,
-  "life-saving": 30,
+  "rescued": 18,
+  "rescue": 18,
+  "saved": 18,
+  "survived": 23,
+  "survival": 23,
+  "hero": 16,
+  "heroic": 16,
+  "saved a life": 25,
+  "life-saving": 25,
 
-  // -----------------------------------------------
-  // OLAY / KAZA
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // OLAY / TEHLİKE
+  // ---------------------------------------------------
 
-  "accident": 15,
-  "incident": 12,
-  "dramatic": 15,
-  "danger": 15,
-  "dangerous": 15,
-  "lucky": 18,
-  "luckily": 18,
-  "miracle": 25,
-  "miraculous": 25,
+  "accident": 14,
+  "incident": 10,
+  "dramatic": 13,
+  "danger": 13,
+  "dangerous": 13,
+  "lucky": 16,
+  "luckily": 16,
+  "miracle": 22,
+  "miraculous": 22,
 
-  // -----------------------------------------------
+  // ---------------------------------------------------
   // İNSAN HİKAYELERİ
-  // -----------------------------------------------
+  // ---------------------------------------------------
 
-  "man": 3,
-  "woman": 3,
-  "boy": 6,
-  "girl": 6,
-  "child": 8,
-  "kid": 8,
-  "couple": 6,
-  "family": 6,
+  "man": 2,
+  "woman": 2,
+  "boy": 5,
+  "girl": 5,
+  "child": 7,
+  "kid": 7,
+  "couple": 5,
+  "family": 5,
+  "person": 2,
 
-  // -----------------------------------------------
-  // İLGİNÇ DAVRANIŞ / YARATICILIK
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // YARATICILIK / BECERİ
+  // ---------------------------------------------------
 
-  "invention": 15,
-  "invented": 15,
-  "created": 8,
-  "talent": 15,
-  "genius": 18,
+  "invention": 16,
+  "invented": 16,
+  "created": 7,
+  "built": 10,
+  "made": 5,
+  "talent": 14,
+  "genius": 17,
   "clever": 12,
   "creative": 12,
-  "prank": 12,
-  "funny": 12,
-  "hilarious": 15,
-  "awkward": 15,
-  "embarrassing": 12,
+  "skill": 10,
+  "technique": 12,
+  "method": 10,
 
-  // -----------------------------------------------
-  // REAKSİYON
-  // -----------------------------------------------
+  // ---------------------------------------------------
+  // KOMİK / GARİP DAVRANIŞ
+  // ---------------------------------------------------
 
-  "reaction": 15,
-  "reacts": 15,
-  "reaction video": 20,
-  "people can't believe": 25,
-  "people are shocked": 25,
-  "everyone is shocked": 25
+  "prank": 10,
+  "funny": 10,
+  "hilarious": 13,
+  "awkward": 13,
+  "embarrassing": 10,
+  "strangest": 18,
+
+  // ---------------------------------------------------
+  // BİLGİ / KEŞİF
+  // ---------------------------------------------------
+
+  "scientists": 12,
+  "scientist": 12,
+  "discovered": 15,
+  "discovery": 15,
+  "researchers": 10,
+  "research": 8,
+  "study": 8,
+  "explained": 8,
+  "how": 8,
+  "why": 8,
+  "actually": 10,
+  "apparently": 8,
+  "turns out": 14,
+  "for the first time": 18,
+  "first ever": 18,
+  "rare footage": 20,
+
+  // ---------------------------------------------------
+  // GÖRÜNÜŞ / FİZİKSEL OLAYLAR
+  // ---------------------------------------------------
+
+  "microscope": 15,
+  "close-up": 12,
+  "underwater": 12,
+  "inside": 8,
+  "under": 6,
+  "behind": 6,
+  "without": 8,
+  "using": 7,
+  "before": 5,
+  "after": 5
 
 };
 
 
 // =====================================================
-// HELPERS
+// TEXT CLEANER
 // =====================================================
 
 function cleanText(value) {
@@ -273,21 +367,18 @@ function cleanText(value) {
   let text =
     String(value || "");
 
-  // CDATA
   text =
     text.replace(
       /<!\[CDATA\[([\s\S]*?)\]\]>/gi,
       "$1"
     );
 
-  // HTML
   text =
     text.replace(
       /<[^>]*>/g,
       " "
     );
 
-  // Entities
   text =
     text
       .replace(/&amp;/gi, "&")
@@ -298,7 +389,6 @@ function cleanText(value) {
       .replace(/&gt;/gi, ">")
       .replace(/&nbsp;/gi, " ");
 
-  // Whitespace
   text =
     text
       .replace(/\s+/g, " ")
@@ -310,7 +400,7 @@ function cleanText(value) {
 
 
 // =====================================================
-// XML TAG EXTRACTOR
+// XML TAG READER
 // =====================================================
 
 function getTag(block, tagName) {
@@ -339,117 +429,15 @@ function getTag(block, tagName) {
   if (!match)
     return "";
 
-  return cleanText(match[1]);
+  return cleanText(
+    match[1]
+  );
 
 }
 
 
 // =====================================================
-// RSS ITEM EXTRACTION
-// =====================================================
-
-function extractItems(xml, sourceName) {
-
-  const items = [];
-
-  // RSS <item>
-  let blocks =
-    xml.match(
-      /<item\b[\s\S]*?<\/item>/gi
-    ) || [];
-
-  // Atom <entry> fallback
-  if (blocks.length === 0) {
-
-    blocks =
-      xml.match(
-        /<entry\b[\s\S]*?<\/entry>/gi
-      ) || [];
-
-  }
-
-
-  for (const block of blocks) {
-
-    const title =
-      getTag(block, "title");
-
-    let link =
-      getTag(block, "link");
-
-    // Atom links can be href attributes
-    if (!link) {
-
-      const atomLink =
-        block.match(
-          /<link\b[^>]*href=["']([^"']+)["'][^>]*>/i
-        );
-
-      if (atomLink)
-        link =
-          cleanText(atomLink[1]);
-
-    }
-
-
-    const description =
-      getTag(block, "description") ||
-      getTag(block, "summary") ||
-      getTag(block, "content");
-
-
-    const published =
-      getTag(block, "pubDate") ||
-      getTag(block, "published") ||
-      getTag(block, "updated");
-
-
-    if (!title || !link)
-      continue;
-
-
-    const score =
-      scoreStory(
-        title,
-        description
-      );
-
-
-    items.push({
-
-      title:
-        title.slice(0, 300),
-
-      description:
-        description.slice(0, 700),
-
-      url:
-        link,
-
-      source:
-        sourceName,
-
-      published:
-        published,
-
-      viralScore:
-        score.score,
-
-      reasons:
-        score.reasons
-
-    });
-
-  }
-
-
-  return items;
-
-}
-
-
-// =====================================================
-// NORMALIZE TEXT
+// NORMALIZE
 // =====================================================
 
 function normalizeText(text) {
@@ -468,7 +456,10 @@ function normalizeText(text) {
 // STORY SCORING
 // =====================================================
 
-function scoreStory(title, description) {
+function scoreStory(
+  title,
+  description
+) {
 
   const original =
     `${title} ${description}`;
@@ -476,11 +467,14 @@ function scoreStory(title, description) {
   const text =
     normalizeText(original);
 
-
   let score = 0;
 
   const reasons = [];
 
+
+  // -----------------------------------------------
+  // KEYWORDS
+  // -----------------------------------------------
 
   for (
     const [keyword, points]
@@ -492,7 +486,6 @@ function scoreStory(title, description) {
 
     if (!normalizedKeyword)
       continue;
-
 
     if (
       text.includes(
@@ -512,7 +505,7 @@ function scoreStory(title, description) {
 
 
   // -----------------------------------------------
-  // BAŞLIK MERAK PUANI
+  // BAŞLIK UZUNLUĞU
   // -----------------------------------------------
 
   if (title.length >= 40)
@@ -523,15 +516,15 @@ function scoreStory(title, description) {
 
 
   // -----------------------------------------------
-  // SORU / ŞAŞIRTICI YAPI
+  // MERAK CÜMLESİ
   // -----------------------------------------------
 
   if (
-    /why|how|what|this|after|before|when/i
+    /why|how|what|when|where|this|after|before/i
       .test(title)
   ) {
 
-    score += 5;
+    score += 7;
 
     reasons.push(
       "curiosity"
@@ -545,7 +538,7 @@ function scoreStory(title, description) {
   // -----------------------------------------------
 
   if (
-    /video|camera|footage|clip|watch/i
+    /video|camera|footage|clip|watch|filmed|recorded/i
       .test(original)
   ) {
 
@@ -563,11 +556,11 @@ function scoreStory(title, description) {
   // -----------------------------------------------
 
   if (
-    /rescued|saved|survived|unexpected|caught|shocked|viral/i
+    /rescued|saved|survived|unexpected|caught|shocked|discovered|invented|created|rare/i
       .test(original)
   ) {
 
-    score += 10;
+    score += 12;
 
     reasons.push(
       "story"
@@ -577,7 +570,39 @@ function scoreStory(title, description) {
 
 
   // -----------------------------------------------
-  // ÇOK KISA / ZAYIF BAŞLIKLARI KIRP
+  // BİLGİ POTANSİYELİ
+  // -----------------------------------------------
+
+  if (
+    /scientist|scientists|research|study|discovered|how|why|actually|turns out/i
+      .test(original)
+  ) {
+
+    score += 10;
+
+    reasons.push(
+      "information"
+    );
+
+  }
+
+
+  // -----------------------------------------------
+  // HAM VİDEO SİNYALİ
+  // -----------------------------------------------
+
+  if (
+    /reddit\.com\/r\//i.test(original) === false &&
+    /video|footage|camera|filmed|recorded/i.test(original)
+  ) {
+
+    score += 5;
+
+  }
+
+
+  // -----------------------------------------------
+  // ZAYIF BAŞLIK
   // -----------------------------------------------
 
   if (title.length < 20)
@@ -605,10 +630,169 @@ function scoreStory(title, description) {
 
 
 // =====================================================
+// RSS / ATOM ITEM EXTRACTION
+// =====================================================
+
+function extractItems(
+  xml,
+  sourceName
+) {
+
+  const items = [];
+
+
+  // RSS
+  let blocks =
+    xml.match(
+      /<item\b[\s\S]*?<\/item>/gi
+    ) || [];
+
+
+  // Atom fallback
+  if (
+    blocks.length === 0
+  ) {
+
+    blocks =
+      xml.match(
+        /<entry\b[\s\S]*?<\/entry>/gi
+      ) || [];
+
+  }
+
+
+  for (
+    const block
+    of blocks
+  ) {
+
+    const title =
+      getTag(
+        block,
+        "title"
+      );
+
+
+    let link =
+      getTag(
+        block,
+        "link"
+      );
+
+
+    // Atom href
+    if (!link) {
+
+      const atomLink =
+        block.match(
+          /<link\b[^>]*href=["']([^"']+)["'][^>]*>/i
+        );
+
+      if (atomLink) {
+
+        link =
+          cleanText(
+            atomLink[1]
+          );
+
+      }
+
+    }
+
+
+    const description =
+      getTag(
+        block,
+        "description"
+      ) ||
+      getTag(
+        block,
+        "summary"
+      ) ||
+      getTag(
+        block,
+        "content"
+      );
+
+
+    const published =
+      getTag(
+        block,
+        "pubDate"
+      ) ||
+      getTag(
+        block,
+        "published"
+      ) ||
+      getTag(
+        block,
+        "updated"
+      );
+
+
+    if (
+      !title ||
+      !link
+    ) {
+
+      continue;
+
+    }
+
+
+    const result =
+      scoreStory(
+        title,
+        description
+      );
+
+
+    items.push({
+
+      title:
+        title.slice(
+          0,
+          300
+        ),
+
+      description:
+        description.slice(
+          0,
+          800
+        ),
+
+      url:
+        link,
+
+      source:
+        sourceName,
+
+      published:
+        published,
+
+      viralScore:
+        result.score,
+
+      reasons:
+        result.reasons
+
+    });
+
+  }
+
+
+  return items;
+
+}
+
+
+// =====================================================
 // FETCH SOURCE
 // =====================================================
 
-async function fetchSource(source) {
+async function fetchSource(
+  source
+) {
 
   try {
 
@@ -623,7 +807,7 @@ async function fetchSource(source) {
           headers: {
 
             "User-Agent":
-              "Mozilla/5.0 (compatible; ViralStoryHunter/3.0)",
+              "Mozilla/5.0 (compatible; StoryHunter/4.0)",
 
             "Accept":
               "application/rss+xml, application/xml, text/xml, */*"
@@ -634,7 +818,9 @@ async function fetchSource(source) {
       );
 
 
-    if (!response.ok) {
+    if (
+      !response.ok
+    ) {
 
       return [];
 
@@ -655,7 +841,9 @@ async function fetchSource(source) {
     );
 
   }
-  catch (error) {
+  catch (
+    error
+  ) {
 
     return [];
 
@@ -673,12 +861,13 @@ async function getFeed() {
   const allResults = [];
 
 
-  // Kaynakları paralel çek
   const fetched =
     await Promise.all(
       SOURCES.map(
         source =>
-          fetchSource(source)
+          fetchSource(
+            source
+          )
       )
     );
 
@@ -695,9 +884,9 @@ async function getFeed() {
   }
 
 
-  // -----------------------------------------------
+  // ===================================================
   // DUPLICATE TEMİZLEME
-  // -----------------------------------------------
+  // ===================================================
 
   const unique = [];
 
@@ -727,7 +916,9 @@ async function getFeed() {
 
     if (
       url &&
-      seenURLs.has(url)
+      seenURLs.has(
+        url
+      )
     ) {
 
       continue;
@@ -737,7 +928,9 @@ async function getFeed() {
 
     if (
       titleKey &&
-      seenTitles.has(titleKey)
+      seenTitles.has(
+        titleKey
+      )
     ) {
 
       continue;
@@ -752,18 +945,21 @@ async function getFeed() {
       seenTitles.add(titleKey);
 
 
-    unique.push(item);
+    unique.push(
+      item
+    );
 
   }
 
 
-  // -----------------------------------------------
-  // SCORE + TARIH
-  // -----------------------------------------------
+  // ===================================================
+  // SCORE + YENİLİK
+  // ===================================================
 
   unique.sort(
     (a, b) => {
 
+      // Önce hikâye skoru
       if (
         b.viralScore !==
         a.viralScore
@@ -777,11 +973,11 @@ async function getFeed() {
       }
 
 
+      // Eşitse yeni olan öne
       return (
         new Date(
           b.published || 0
         ) -
-
         new Date(
           a.published || 0
         )
@@ -852,7 +1048,9 @@ function json(
 
 export default {
 
-  async fetch(request) {
+  async fetch(
+    request
+  ) {
 
     const url =
       new URL(
@@ -860,9 +1058,9 @@ export default {
       );
 
 
-    // -----------------------------------------------
-    // CORS PREFLIGHT
-    // -----------------------------------------------
+    // =================================================
+    // CORS
+    // =================================================
 
     if (
       request.method ===
@@ -873,7 +1071,8 @@ export default {
         null,
         {
 
-          status: 204,
+          status:
+            204,
 
           headers: {
 
@@ -894,9 +1093,9 @@ export default {
     }
 
 
-    // -----------------------------------------------
+    // =================================================
     // HOME / HEALTH
-    // -----------------------------------------------
+    // =================================================
 
     if (
       url.pathname === "/" ||
@@ -909,10 +1108,10 @@ export default {
           true,
 
         engine:
-          "VIRAL STORY HUNTER",
+          "STORY HUNTER",
 
         version:
-          "3.0",
+          "4.0",
 
         status:
           "online",
@@ -925,9 +1124,9 @@ export default {
     }
 
 
-    // -----------------------------------------------
+    // =================================================
     // FEED / SCAN
-    // -----------------------------------------------
+    // =================================================
 
     if (
       url.pathname === "/feed" ||
@@ -956,7 +1155,9 @@ export default {
         });
 
       }
-      catch (error) {
+      catch (
+        error
+      ) {
 
         return json(
 
@@ -989,9 +1190,9 @@ export default {
     }
 
 
-    // -----------------------------------------------
+    // =================================================
     // 404
-    // -----------------------------------------------
+    // =================================================
 
     return json(
 
